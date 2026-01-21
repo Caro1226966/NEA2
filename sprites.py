@@ -8,16 +8,152 @@ class Monolith(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
         super(Monolith, self).__init__()
 
-        self.image = pygame.surface.Surface((MONOLITH_WIDTH, MONOLITH_HEIGHT))
+        self.image = pygame.image.load('monolith.png')
+        self.image = pygame.transform.scale(self.image, (MONOLITH_WIDTH, MONOLITH_HEIGHT))
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
         self.game = game
 
-        self.health = 100
+        # This is the monolith's health
+        self.health = 1000
+
+        # All the time difficulty parameters
+        self.tick_lifespan = 0
+        self.seconds_lifespan = 0
+        self.wave = 0
+
+        # The default cooldown for the zombie spawns
+        self.zombie_cooldown = 30
 
     def update(self):
+        self.collision()
+        self.spawn_zombies()
+
+
+        self.tick_lifespan += 1
+
+        if self.tick_lifespan >= 60:
+            self.tick_lifespan = 0
+            self.seconds_lifespan += 1
+
+    def collision(self):
+        # The zombie collisions
         zombie_collision = pygame.sprite.spritecollide(self, self.game.all_zombies, False)
+        for zombie in zombie_collision:
+
+            # Checks that the zombie can attack
+            if zombie.attack_cooldown <=0:
+                zombie.attack_cooldown = 60
+                self.health -= zombie.damage
+            else:
+                zombie.attack_cooldown -= 1
+
+            # Checks if the monolith is dead
+            if self.health <= 0:
+                self.game.end = True
+
+    # The method to spawn the zombies in the map
+    def spawn_zombies(self):
+        # Makes a zombie spawn cooldown that eventually gets faster
+        if self.zombie_cooldown <= 0:
+            self.zombie_cooldown = DEFAULT_ZOMBIE_COOLDOWN * (10/self.seconds_lifespan)
+
+            # Calculate amount of reinforcements being spawned
+            zombie_amount = round((ZOMBIE_SPAWN_PROBABILITY * self.game.monolith.tick_lifespan), 0) + 1
+            zombie_amount = int(zombie_amount)
+
+            for i in range(0, zombie_amount):
+                # Calculate the location of the reinforcements being spawned
+                location_x = random.randint(0, SCREEN_WIDTH)
+                location_y = random.randint(0, SCREEN_HEIGHT)
+
+                # Calculate health
+                health = random.randint(1, 200)
+                damage = random.randint(1, 50)
+
+                zombie = Zombie(location_x, location_y, health, damage, False, self.game)
+                self.game.all_sprites.add(zombie)
+                self.game.all_zombies.add(zombie)
+        else:
+            self.zombie_cooldown -= 0.1
+            print(self.zombie_cooldown)
+
+
+
+
+# The zombie logic
+class Zombie(pygame.sprite.Sprite):
+    def __init__(self, x, y, health, damage,reinforcement, game):
+        super(Zombie, self).__init__()
+
+        # Sprite parameters
+        self.image = pygame.surface.Surface((ZOMBIE_WIDTH, ZOMBIE_HEIGHT))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+        # To access the game
+        self.game = game
+
+        # extra zombie properties
+        self.health = health
+        self.movement_speed = BASE_MOVEMENT_SPEED * (50/self.health)
+        self.damage = damage
+        self.reinforcement = reinforcement
+        self.attack_cooldown = 60
+
+
+        # Target location's x and y
+        self.target_x = self.game.monolith.rect.x + MONOLITH_WIDTH/2
+        self.target_y = self.game.monolith.rect.y + MONOLITH_HEIGHT/2
+
+        # Spawns reinforcements
+        self.spawn_reinforcements()
+
+    def update(self):
+        self.move()
+
+
+# The logic to spawn zombie reinforcements
+    def spawn_reinforcements(self):
+        if not self.reinforcement:
+            # Calculate amount of reinforcements being spawned
+            reinforcement_amount = round((REINFORCEMENT_PROBABILITY * self.game.monolith.seconds_lifespan), 0)
+            reinforcement_amount = int(reinforcement_amount)
+
+
+            for i in range(0,reinforcement_amount):
+                # Calculate the location of the reinforcements being spawned
+                location_x =random.randint(self.rect.x - 100,self.rect.x + 100)
+                location_y =random.randint(self.rect.y - 100,self.rect.y + 100)
+
+                # Calculate health
+                health = random.randint(1,200)
+                damage = random.randint(1,50)
+
+                zombie = Zombie(location_x, location_y, health, damage, True, self.game)
+                self.game.all_sprites.add(zombie)
+                self.game.all_zombies.add(zombie)
+
+    # The function for the zombie's movement logic
+    def move(self):
+        # The method that makes the sprite move to the desire location using vectors
+        movement_vector = pygame.math.Vector2(self.target_x - self.rect.x, self.target_y - self.rect.y)
+
+        # In a try incase the normalisation or movement fail (e.g. it is on the target and can't move anywhere else)
+        try:
+            # Normalises the vector
+            movement_vector.normalize()
+            # Re-scales the vector
+            movement_vector.scale_to_length(self.movement_speed)
+            # Moves the sprite
+            self.rect.move_ip(movement_vector)
+            # print('Vector: ', movement_vector)
+        except:
+            pass
+
+
+
 
 class MenuCard(pygame.sprite.Sprite):
     def __init__(self, x, y, colour, game):
