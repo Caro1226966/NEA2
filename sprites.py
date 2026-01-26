@@ -1,5 +1,3 @@
-import pygame
-
 from config import *
 
 pygame.joystick.init()
@@ -41,6 +39,7 @@ class Monolith(pygame.sprite.Sprite):
         # The zombie collisions
         zombie_collision = pygame.sprite.spritecollide(self, self.game.all_zombies, False)
         for zombie in zombie_collision:
+            zombie.at_target = True
 
             # Checks that the zombie can attack
             if zombie.attack_cooldown <=0:
@@ -80,8 +79,6 @@ class Monolith(pygame.sprite.Sprite):
             print(self.zombie_cooldown)
 
 
-
-
 # The zombie logic
 class Zombie(pygame.sprite.Sprite):
     def __init__(self, x, y, health, damage,reinforcement, game):
@@ -98,10 +95,12 @@ class Zombie(pygame.sprite.Sprite):
         # extra zombie properties
         self.health = health
         self.movement_speed = BASE_MOVEMENT_SPEED * (50/self.health)
+        if self.movement_speed >= BASE_MOVEMENT_SPEED * 2:
+            self.movement_speed = BASE_MOVEMENT_SPEED * 2
         self.damage = damage
         self.reinforcement = reinforcement
         self.attack_cooldown = 60
-
+        self.at_target  = False
 
         # Target location's x and y
         self.target_x = self.game.monolith.rect.x + MONOLITH_WIDTH/2
@@ -111,7 +110,9 @@ class Zombie(pygame.sprite.Sprite):
         self.spawn_reinforcements()
 
     def update(self):
-        self.move()
+        if not self.at_target:
+            self.move()
+        self.monolith_collision()
 
 
 # The logic to spawn zombie reinforcements
@@ -151,6 +152,17 @@ class Zombie(pygame.sprite.Sprite):
             # print('Vector: ', movement_vector)
         except:
             pass
+
+    def monolith_collision(self):
+        if self.rect.left == self.game.monolith.rect.right:
+            self.rect.left == self.game.monolith.rect.right + 1
+        elif self.rect.right == self.game.monolith.rect.left:
+            self.rect.right == self.game.monolith.rect.left + 1
+        elif self.rect.top == self.game.monolith.rect.bottom:
+            self.rect.top == self.game.monolith.rect.bottom + 1
+        elif self.rect.bottom == self.game.monolith.rect.top:
+            self.rect.bottom == self.game.monolith.rect.top + 1
+
 
 
 
@@ -256,8 +268,12 @@ class Player(pygame.sprite.Sprite):
         self.is_player1 = player1
 
         # Trigger initialisation
-        self.trigger = pygame.joystick.Joystick(0)
-        self.trigger.init()
+        if pygame.joystick.get_count() < 1:
+            print('please connect a joystick')
+            self.trigger = None
+        else:
+            self.trigger = pygame.joystick.Joystick(0)
+            self.trigger.init()
 
 
 
@@ -266,8 +282,12 @@ class Player(pygame.sprite.Sprite):
 
     def movement(self):
         key = pygame.key.get_pressed()
-        ls_y = self.trigger.get_axis(1)
-        ls_x = self.trigger.get_axis(0)
+        if self.trigger != None:
+            ls_y = self.trigger.get_axis(1)
+            ls_x = self.trigger.get_axis(0)
+        else:
+            ls_y = 0
+            ls_x = 0
 
         if (self.is_player1 and key[pygame.K_w]) or (not self.is_player1 and ls_y < -0.3):
             self.rect.y -= PLAYER_SPEED

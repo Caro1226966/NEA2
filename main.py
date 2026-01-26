@@ -67,7 +67,6 @@ class Game:
 
         self.draw_text(screen)
 
-
     def draw_text(self, screen):
 
         if self.menu_card.mode == "zombie_shooter" and self.menu_card in self.all_sprites:
@@ -102,7 +101,7 @@ class Game:
         self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
 
         # Setup Sprites
-        self.player1 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'red',True, self)
+        self.player1 = Player(SCREEN_WIDTH/1.735,SCREEN_HEIGHT/2,'red',True, self)
         self.player2 = Player(SCREEN_WIDTH/2.1,SCREEN_HEIGHT/2,'blue',False, self)
         self.monolith = Monolith(SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2, self)
 
