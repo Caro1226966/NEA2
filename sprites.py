@@ -1,3 +1,5 @@
+from symtable import Class
+
 from config import *
 
 pygame.joystick.init()
@@ -50,6 +52,7 @@ class Monolith(pygame.sprite.Sprite):
 
             # Checks if the monolith is dead
             if self.health <= 0:
+                self.health = 0
                 self.game.end = True
 
     # The method to spawn the zombies in the map
@@ -164,6 +167,15 @@ class Zombie(pygame.sprite.Sprite):
             self.rect.bottom == self.game.monolith.rect.top + 1
 
 
+class Pointer(pygame.sprite.Sprite):
+    def __init__(self, x, y, is_player_1):
+        super(Pointer, self).__init__()
+
+        self.is_player_1 = is_player_1
+
+        if self.is_player_1:
+            self.rect = self.image.get_rect()
+            self.rect.center = (x, y)
 
 
 
@@ -244,10 +256,10 @@ class MenuCard(pygame.sprite.Sprite):
 
     def on_click(self):
         if self.mode == 'zombie_shooter':
-            self.game.reset()
+            self.game.sprite_reset()
             self.game.setup_zombie_shooter()
         elif self.mode == '1V1':
-            self.game.reset()
+            self.game.sprite_reset()
             self.game.setup_1v1_shooter()
 
 
