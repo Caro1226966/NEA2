@@ -13,6 +13,8 @@ class Game:
         # Players
         self.player1 = None
         self.player2 = None
+        self.pointer1 = None
+        self.pointer2 = None
 
         # Makes sure the old score is recorded properly
         self.old_score = self.read_from_file()
@@ -31,6 +33,7 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
         self.all_players = pygame.sprite.Group()
         self.all_zombies = pygame.sprite.Group()
+        self.all_bullets = pygame.sprite.Group()
 
         # Defaults to the game not having ended yet
         self.end = False
@@ -76,7 +79,6 @@ class Game:
 
     # Displays all appropriate text at the appropriate time to the user
     def draw_text(self, screen):
-
         if self.menu_card.mode == "zombie_shooter" and self.menu_card in self.all_sprites:
             # Game name
             text_surface = font.render('Zombie Shooter', True, (0, 255, 0))
@@ -86,10 +88,16 @@ class Game:
             text_surface = font.render(('High Score: ' + str(self.read_from_file())), True, (0,255,0))
             screen.blit(text_surface, (SCREEN_WIDTH/2.3, SCREEN_HEIGHT/1.15))
 
-        # Monolith's health
+
         elif not self.menu_card in self.all_sprites and self.menu_card.mode == "zombie_shooter" and not self.end:
+            # Monolith's health
             text_surface = font.render(('Monolith Health: ' + str(self.monolith.health)), True, (255, 0, 0))
             screen.blit(text_surface, (SCREEN_WIDTH/2.5, 0))
+
+            # Wave number
+            text_surface = font.render(('Wave: ' + str(self.monolith.wave)), True, (255, 0, 0))
+            screen.blit(text_surface, (SCREEN_WIDTH/2.1, SCREEN_HEIGHT/17))
+
 
         elif not self.menu_card in self.all_sprites and self.menu_card.mode == "zombie_shooter" and self.end:
             # Zombie shooter end score
@@ -104,6 +112,7 @@ class Game:
 
     # Sets up the default main menu for the game
     def setup_menu(self):
+        # Sets and scales appropriate background
         self.background = pygame.image.load("zombie_menu_background.png")
         self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
 
@@ -111,6 +120,8 @@ class Game:
         # Create the menu card
         self.menu_card = MenuCard(SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2, 'green', self)
         self.all_sprites.add(self.menu_card)
+
+        pygame.mouse.set_visible(True) # Makes you able to see your mouse
 
 
     # This sets up the start of the default zombie shooter gamemode
@@ -121,10 +132,14 @@ class Game:
         # Setup Sprites
         self.player1 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'red',True, self)
         self.player2 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'blue',False, self)
+        self.pointer1 = Pointer(False)
+        self.pointer2 = Pointer(True)
         self.monolith = Monolith(SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2, self)
 
-        self.all_sprites.add(self.player1, self.player2, self.monolith)
+        self.all_sprites.add(self.player1, self.player2, self.pointer1, self.pointer2, self.monolith)
         self.all_players.add(self.player1, self.player2)
+
+        pygame.mouse.set_visible(False)
 
     def setup_1v1_shooter(self):
         pass
@@ -133,6 +148,7 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
         self.all_players = pygame.sprite.Group()
         self.all_zombies = pygame.sprite.Group()
+        self.all_bullets = pygame.sprite.Group()
 
     def end_game_reset(self):
         if self.end:
