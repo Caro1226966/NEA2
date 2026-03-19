@@ -1,9 +1,8 @@
-import tkinter as tk
+import pygame as p
+import random
 
-root = tk.Tk()
-SCREEN_WIDTH = root.winfo_screenwidth()
+print (random.randint(1,1))
 
-BASE_MOVEMENT_SPEED = 600
-print(BASE_MOVEMENT_SPEED,' = Base movement speed')
-health = 6000
-print(BASE_MOVEMENT_SPEED * (500/health))
+all_sprites = p.sprite.Group()
+
+all_sprites.update()
