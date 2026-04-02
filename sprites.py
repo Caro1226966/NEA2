@@ -198,7 +198,7 @@ class Zombie(pygame.sprite.Sprite):
 
 # Pointer class
 class Pointer(pygame.sprite.Sprite):
-    def __init__(self, is_player_1):
+    def __init__(self, is_player_1, x, y):
         super(Pointer, self).__init__()
 
         # Check for player 1
@@ -213,8 +213,6 @@ class Pointer(pygame.sprite.Sprite):
 
 
         # Sort out parameters
-        x = SCREEN_WIDTH / 1.9
-        y = SCREEN_HEIGHT / 2
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
@@ -284,7 +282,8 @@ class MenuCard(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
         self.colour = colour
-        self.image.fill(self.colour)
+        self.image = pygame.image.load("zombie_shooter_menu_card.png")
+        self.image = pygame.transform.scale(self.image, (CARD_WIDTH, CARD_HEIGHT))
 
         # To call upon the game when needed
         self.game = game
@@ -339,7 +338,8 @@ class MenuCard(pygame.sprite.Sprite):
             elif self.mode == '1V1':
                 self.mode = 'zombie_shooter'
                 self.colour = 'green'
-                self.image.fill(self.colour)
+                self.image = pygame.image.load("zombie_shooter_menu_card.png")
+                self.image = pygame.transform.scale(self.image, (CARD_WIDTH, CARD_HEIGHT))
             self.background_changed = False
 
         # Lets the user select the gamemode
@@ -354,7 +354,7 @@ class MenuCard(pygame.sprite.Sprite):
         if self.mode == 'zombie_shooter':
             self.game.sprite_reset()
             self.game.setup_zombie_shooter()
-        elif self.mode == '1V1':
+        elif self.mode == '1V1' and not self.game.single_player:
             self.game.sprite_reset()
             self.game.setup_1v1_shooter()
 
@@ -388,6 +388,9 @@ class Player(pygame.sprite.Sprite):
 
         # Materials
         self.wall_materials = 5
+
+        # Player's health
+        self.health = 500
 
     # Update class
     def update(self):
@@ -460,6 +463,7 @@ class Player(pygame.sprite.Sprite):
         else:
             lt = 0
 
+        # Player 1 building and walls snapping to grid
         if mouse[2]and self.is_player1 and self.wall_materials > 0:
             self.wall_materials -= 1
 
@@ -473,7 +477,7 @@ class Player(pygame.sprite.Sprite):
             self.game.all_sprites.add(wall)
             self.game.all_walls.add(wall)
 
-
+        # Player2 building and walls snapping to grid
         elif lt >= 0.3 and not self.is_player1 and self.wall_materials > 0:
             self.wall_materials -= 1
 
@@ -487,10 +491,34 @@ class Player(pygame.sprite.Sprite):
             self.game.all_sprites.add(wall)
             self.game.all_walls.add(wall)
 
+
+    # Player collisions
     def collision(self):
+        # Checks if the player has collided with the wall material
         collided_wall_materials = pygame.sprite.spritecollide(self, self.game.all_materials, True)
         for wall_material in collided_wall_materials:
+            # Gives the player a random amount of materials from 1-3
             self.wall_materials += random.randint(1,3)
+
+        # Checks if the player has collided with a bullet
+        collided_bullets = pygame.sprite.spritecollide(self,self.game.all_bullets, False)
+        for bullet in collided_bullets:
+            # Makes sure it is the right gamemode and the player is
+            if self.game.menu_card.mode == '1V1':
+                if (self.is_player1 and not bullet.is_player1) or (not self.is_player1 and bullet.is_player1):
+                    self.health -= BULLET_DAMAGE
+
+                    self.game.all_sprites.remove(bullet)
+                    self.game.all_bullets.remove(bullet)
+
+        # Determines the winner
+        if self.health <=0:
+            self.health = 0
+            self.game.end = True
+            if self.is_player1:
+                self.game.winner = 'Player2'
+            else:
+                self.game.winner = 'Player1'
 
 
 # This handles the screen clipping and borders for the player
@@ -586,14 +614,14 @@ class Wall(pygame.sprite.Sprite):
                 self.game.all_sprites.remove(self)
                 self.game.all_walls.remove(self)
 
-                # Lets the zombie move again
-                zombie.at_target = False
+                # Lets the zombie(s) move again
+                for zombie_need_moving in zombie_collisions:
+                    zombie_need_moving.at_target = False
 
         # Collisions with bullets
         bullet_collisions = pygame.sprite.spritecollide(self,self.game.all_bullets, False)
         for bullet in bullet_collisions:
             if self.game.menu_card.mode == '1V1':
-                if bullet.is_player1 != self.is_player1: # If the bullet is player 1 and wall is player 2 or vice versa
                     self.health -= 1
                     self.game.all_sprites.remove(bullet)
                     self.game.all_bullets.remove(bullet)

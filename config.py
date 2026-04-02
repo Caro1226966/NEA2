@@ -43,6 +43,8 @@ PLAYER_HEIGHT = SCREEN_HEIGHT / 20
 # Menu card parameters
 CARD_WIDTH = SCREEN_WIDTH / 4
 CARD_HEIGHT = SCREEN_HEIGHT / 1.5
+print('Card Height: ', CARD_HEIGHT)
+print('Card Width:', CARD_WIDTH)
 
 # Monolith Parameters
 MONOLITH_WIDTH = SCREEN_WIDTH / 15

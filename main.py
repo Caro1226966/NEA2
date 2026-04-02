@@ -16,6 +16,9 @@ class Game:
         self.pointer1 = None
         self.pointer2 = None
 
+        # Multiple players
+        self.single_player = False
+
         # Makes sure the old score is recorded properly
         self.old_score = self.read_from_file()
 
@@ -39,6 +42,7 @@ class Game:
 
         # Defaults to the game not having ended yet
         self.end = False
+        self.winner = False
 
         # Menu setup
         self.setup_menu()
@@ -53,7 +57,7 @@ class Game:
                         self.running = False
 
                     # Checks for the space on the results screen
-                    elif (event.key == pygame.K_SPACE) and (not self.menu_card in self.all_sprites) and (self.menu_card.mode == "zombie_shooter") and self.end:
+                    elif (event.key == pygame.K_SPACE) and (not self.menu_card in self.all_sprites) and (self.menu_card.mode == "zombie_shooter" or self.menu_card.mode == '1V1') and self.end:
                         self.end = False
                         self.sprite_reset()
                         self.setup_menu()
@@ -69,6 +73,7 @@ class Game:
     def update(self):
         self.all_sprites.update()
         self.do_game_drops()
+        self.check_for_joystick()
 
         # Resets the game when it ends
         if self.end:
@@ -100,6 +105,10 @@ class Game:
             text_surface = font.render('1V1 Shooter', True, (255, 0, 0))
             screen.blit(text_surface, (SCREEN_WIDTH / 2.2, SCREEN_HEIGHT / 10))
 
+            if self.single_player:
+                text_surface = score_font.render('Connect Controller', True, (0, 0, 0))
+                screen.blit(text_surface, ((SCREEN_WIDTH/30), SCREEN_HEIGHT / 3.5))
+
         # Zombie Shooter UI ============================================================================
         elif not self.menu_card in self.all_sprites and self.menu_card.mode == "zombie_shooter" and not self.end:
             # Monolith's health
@@ -115,14 +124,39 @@ class Game:
             screen.blit(text_surface, (SCREEN_WIDTH / 30,0))
 
             # Player2's material count
-            text_surface = font.render(('Materials: ' + str(self.player2.wall_materials)), True, (78, 101, 245))
-            screen.blit(text_surface, (SCREEN_WIDTH / 1.3,0))
+            if not self.single_player:
+                text_surface = font.render(('Materials: ' + str(self.player2.wall_materials)), True, (78, 101, 245))
+                screen.blit(text_surface, (SCREEN_WIDTH / 1.3,0))
 
 
         # Zombie shooter end score =======================================================================
         elif not self.menu_card in self.all_sprites and self.menu_card.mode == "zombie_shooter" and self.end:
             text_surface = score_font.render(('Score: ' + str(self.monolith.seconds_lifespan)), True, (255, 0, 0))
             screen.blit(text_surface, ((SCREEN_WIDTH / 5), SCREEN_HEIGHT / 3.5))
+
+        # 1v1 Shooter UI =================================================================================
+        # Player1's material count
+        elif not self.menu_card in self.all_sprites and self.menu_card.mode == "1V1" and not self.end:
+            text_surface = font.render(('Materials: ' + str(self.player1.wall_materials)), True, (245, 195, 78))
+            screen.blit(text_surface, (SCREEN_WIDTH / 30, 0))
+
+            # Player2's material count
+            if not self.single_player:
+                text_surface = font.render(('Materials: ' + str(self.player2.wall_materials)), True, (78, 101, 245))
+                screen.blit(text_surface, (SCREEN_WIDTH / 1.3, 0))
+
+            # Player1's health
+            text_surface = font.render(('Health: ' + str(self.player1.health)), True, (245, 195, 78))
+            screen.blit(text_surface, (SCREEN_WIDTH / 4, 0))
+
+            # Player2's health
+            text_surface = font.render(('Health: ' + str(self.player2.health)), True, (78, 101, 245))
+            screen.blit(text_surface, (SCREEN_WIDTH / 1.7, 0))
+
+        # 1V1 shooter end score =======================================================================
+        elif not self.menu_card in self.all_sprites and self.menu_card.mode == "1V1" and self.end:
+            text_surface = score_font.render(('Winner: ' + str(self.winner)), True, (255, 0, 0))
+            screen.blit(text_surface, ((SCREEN_WIDTH / 8), SCREEN_HEIGHT / 3.5))
 
     # Sets up the default main menu for the game
     def setup_menu(self):
@@ -145,21 +179,40 @@ class Game:
 
         # Setup Sprites
         self.player1 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'red',True, self)
-        self.player2 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'blue',False, self)
+        self.pointer1 = Pointer(True, SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2)
 
-        self.pointer1 = Pointer(True)
-        self.pointer2 = Pointer(False)
+        # Player2 Spawn
+        if not self.single_player:
+            self.player2 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'blue',False, self)
+            self.pointer2 = Pointer(False, SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2)
+            self.all_sprites.add(self.pointer2, self.player2)
 
+        # Monolith spawn
         self.monolith = Monolith(SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2, self)
 
         # Adds all the objects to the sprite groups
-        self.all_sprites.add(self.player1, self.player2, self.pointer1, self.pointer2, self.monolith)
-        self.all_players.add(self.player1, self.player2)
+        self.all_sprites.add(self.player1, self.pointer1, self.monolith)
+        self.all_players.add(self.player1)
 
         pygame.mouse.set_visible(False) # Makes you unable to see the mouse so the custom cursors look better
 
+    # Sets up the game screen for the 1v1 shooter
     def setup_1v1_shooter(self):
-        pass
+        # Sets and scales the in game background
+        self.background = pygame.image.load("background.png")
+        self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+
+        # Setup Sprites
+        self.player1 = Player(SCREEN_WIDTH / 15, SCREEN_HEIGHT / 2, 'red', True, self)
+        self.player2 = Player(SCREEN_WIDTH / 1.1, SCREEN_HEIGHT / 2, 'blue', False, self)
+        self.pointer1 = Pointer(True, SCREEN_WIDTH/15, SCREEN_HEIGHT/2)
+        self.pointer2 = Pointer(False, SCREEN_WIDTH/1.1, SCREEN_HEIGHT/2)
+
+        # Adds all the objects to the sprite groups
+        self.all_sprites.add(self.player1, self.player2, self.pointer1, self.pointer2)
+        self.all_players.add(self.player1, self.player2)
+
+        pygame.mouse.set_visible(False) # Makes you unable to see the mouse so the custom cursors look better
 
 
     # Controls the material drops across both gamemodes
@@ -205,6 +258,17 @@ class Game:
                 # Change the background to the menu background
                 self.background = pygame.image.load("zombie_menu_background.png")
 
+            # Only triggers on the 1v1 shooter game
+            elif self.menu_card.mode == '1V1':
+                pass # Put the background change here
+
+
+    # Checks if a joystick has been connected
+    def check_for_joystick(self):
+        if pygame.joystick.get_count() < 1:
+            self.single_player = True
+        else:
+            self.single_player = False
 
     # This safely returns whatever is in the file
     def read_from_file(self):
