@@ -29,8 +29,11 @@ class Game:
         self.monolith = None
 
         # Sets the default background
-        self.background = pygame.image.load("background.png")
+        self.background = GRASSY_BACKGROUND
         self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.background.fill((50, 168, 82))
 
         # Sprite Groups
         self.all_sprites = pygame.sprite.Group()
@@ -161,8 +164,11 @@ class Game:
     # Sets up the default main menu for the game
     def setup_menu(self):
         # Sets and scales appropriate background
-        self.background = pygame.image.load("zombie_menu_background.png")
+        self.background = ZOMBIE_SHOOTER_BACKGROUND
         self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.background.fill((156, 156, 156))
 
         # Create the menu card
         self.menu_card = MenuCard(SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2, 'green', self)
@@ -174,17 +180,20 @@ class Game:
     # This sets up the start of the default zombie shooter gamemode
     def setup_zombie_shooter(self):
         # Sets and scales the in game background
-        self.background = pygame.image.load("background.png")
+        self.background = GRASSY_BACKGROUND
         self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.background.fill((50, 168, 82))
 
         # Setup Sprites
         self.player1 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'red',True, self)
-        self.pointer1 = Pointer(True, SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2)
+        self.pointer1 = Pointer(True, SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2, self)
 
         # Player2 Spawn
         if not self.single_player:
             self.player2 = Player(SCREEN_WIDTH/1.9,SCREEN_HEIGHT/2,'blue',False, self)
-            self.pointer2 = Pointer(False, SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2)
+            self.pointer2 = Pointer(False, SCREEN_WIDTH/1.9, SCREEN_HEIGHT/2, self)
             self.all_sprites.add(self.pointer2, self.player2)
 
         # Monolith spawn
@@ -199,14 +208,17 @@ class Game:
     # Sets up the game screen for the 1v1 shooter
     def setup_1v1_shooter(self):
         # Sets and scales the in game background
-        self.background = pygame.image.load("background.png")
+        self.background = GRASSY_BACKGROUND
         self.background = pygame.transform.scale(self.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.background.fill((50, 168, 82))
 
         # Setup Sprites
         self.player1 = Player(SCREEN_WIDTH / 15, SCREEN_HEIGHT / 2, 'red', True, self)
         self.player2 = Player(SCREEN_WIDTH / 1.1, SCREEN_HEIGHT / 2, 'blue', False, self)
-        self.pointer1 = Pointer(True, SCREEN_WIDTH/15, SCREEN_HEIGHT/2)
-        self.pointer2 = Pointer(False, SCREEN_WIDTH/1.1, SCREEN_HEIGHT/2)
+        self.pointer1 = Pointer(True, SCREEN_WIDTH/15, SCREEN_HEIGHT/2, self)
+        self.pointer2 = Pointer(False, SCREEN_WIDTH/1.1, SCREEN_HEIGHT/2, self)
 
         # Adds all the objects to the sprite groups
         self.all_sprites.add(self.player1, self.player2, self.pointer1, self.pointer2)
@@ -256,11 +268,16 @@ class Game:
                     # print('No high score!')
 
                 # Change the background to the menu background
-                self.background = pygame.image.load("zombie_menu_background.png")
+                self.background = ZOMBIE_SHOOTER_BACKGROUND
+                # Fills the colour if the images failed to load
+                if IMAGE_LOADING_FAILED:
+                    self.background.fill((156, 156, 156))
 
             # Only triggers on the 1v1 shooter game
             elif self.menu_card.mode == '1V1':
-                pass # Put the background change here
+                # Fills the colour if the images failed to load
+                if IMAGE_LOADING_FAILED:
+                    self.background.fill((156, 156, 156))
 
 
     # Checks if a joystick has been connected

@@ -8,10 +8,14 @@ class Monolith(pygame.sprite.Sprite):
         super(Monolith, self).__init__()
 
         # Sprite parameters
-        self.image = pygame.image.load('monolith.png')
+        self.image = MONOLITH_IMAGE
         self.image = pygame.transform.scale(self.image, (MONOLITH_WIDTH, MONOLITH_HEIGHT))
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.image.fill((156, 156, 156))
 
         self.game = game # Lets it access the game class
 
@@ -60,6 +64,13 @@ class Monolith(pygame.sprite.Sprite):
             if self.health <= 0:
                 self.health = 0
                 self.game.end = True
+
+        wall_collisions = pygame.sprite.spritecollide(self,self.game.all_walls,True)
+        for wall in wall_collisions:
+            if wall.is_player1:
+                self.game.player1.wall_materials += 2
+            else:
+                self.game.player2.wall_materials += 2
 
     # The method to spawn the zombies in the map
     def spawn_zombies(self):
@@ -198,7 +209,7 @@ class Zombie(pygame.sprite.Sprite):
 
 # Pointer class
 class Pointer(pygame.sprite.Sprite):
-    def __init__(self, is_player_1, x, y):
+    def __init__(self, is_player_1, x, y, game):
         super(Pointer, self).__init__()
 
         # Check for player 1
@@ -206,11 +217,15 @@ class Pointer(pygame.sprite.Sprite):
 
         # Apply correct icon
         if self.is_player_1:
-            self.image = pygame.image.load("player2_selector.png")
+            self.image = PLAYER_2_POINTER_IMAGE
+            if IMAGE_LOADING_FAILED:
+                self.image.fill((255,137,0))         # Fills the colour if the images failed to load
         else:
-            self.image = pygame.image.load("player1_selector.png")
-        self.image = pygame.transform.scale(self.image, (POINTER_WIDTH, POINTER_HEIGHT))
+            self.image = PLAYER_1_POINTER_IMAGE
+            if IMAGE_LOADING_FAILED:
+                self.image.fill((0, 145, 255))         # Fills the colour if the images failed to load
 
+        self.image = pygame.transform.scale(self.image, (POINTER_WIDTH, POINTER_HEIGHT))
 
         # Sort out parameters
         self.rect = self.image.get_rect()
@@ -224,10 +239,12 @@ class Pointer(pygame.sprite.Sprite):
             self.trigger = pygame.joystick.Joystick(0)
             self.trigger.init()
 
+        self.game = game # Lets the object access the main game class
 
     def update(self):
         self.move()
         self.clipping()
+        self.collision()
 
     def move(self):
         # Move player 1's pointer
@@ -258,6 +275,26 @@ class Pointer(pygame.sprite.Sprite):
             if rs_y > 0.3:
                 self.rect.x += POINTER_SENSITIVITY
 
+    def break_button_check(self):
+        mouse = pygame.mouse.get_pressed()
+
+        # Returns if the break button is being placed
+        if self.is_player_1 and mouse[2]:
+            return True
+        elif (not self.is_player_1 and self.trigger.get_button(0)) and self.trigger is not None:
+            return True
+        return False
+
+    def collision(self):
+        wall_collisions = pygame.sprite.spritecollide(self,self.game.all_walls,False)
+        for wall in wall_collisions:
+            if self.break_button_check():
+                self.game.all_sprites.remove(wall)
+                self.game.all_walls.remove(wall)
+                if self.is_player_1:
+                    self.game.player1.wall_materials += 1
+                else:
+                    self.game.player2.wall_materials += 1
 
     # This handles the screen clipping and borders for the player
     def clipping(self):
@@ -282,8 +319,11 @@ class MenuCard(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
         self.colour = colour
-        self.image = pygame.image.load("zombie_shooter_menu_card.png")
+        self.image = ZOMBIE_SHOOTER_MENU_CARD
         self.image = pygame.transform.scale(self.image, (CARD_WIDTH, CARD_HEIGHT))
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.image.fill(self.colour)
 
         # To call upon the game when needed
         self.game = game
@@ -305,15 +345,25 @@ class MenuCard(pygame.sprite.Sprite):
     def update_background(self):
         # Changes the background to the zombie shooter background
         if self.mode == 'zombie_shooter' and not self.background_changed:
-            self.game.background = pygame.image.load("zombie_menu_background.png")
+            self.game.background = ZOMBIE_SHOOTER_BACKGROUND
             self.game.background = pygame.transform.scale(self.game.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+
+            # Fills the colour if the images failed to load
+            if IMAGE_LOADING_FAILED:
+                self.game.background.fill((112,112,112))
+
             self.background_changed = True
 
 
         # Changes the background to the 1v1 background
         elif self.mode == '1V1' and not self.background_changed:
-            self.game.background = pygame.image.load("background.png")
+            self.game.background = GRASSY_BACKGROUND
             self.game.background = pygame.transform.scale(self.game.background, (BG_IMAGE_SIZE[0], BG_IMAGE_SIZE[1]))
+
+            # Fills the colour if the images failed to load
+            if IMAGE_LOADING_FAILED:
+                self.game.background.fill((112,112,112))
+
             self.background_changed = True
 
 
@@ -338,8 +388,11 @@ class MenuCard(pygame.sprite.Sprite):
             elif self.mode == '1V1':
                 self.mode = 'zombie_shooter'
                 self.colour = 'green'
-                self.image = pygame.image.load("zombie_shooter_menu_card.png")
+                self.image = ZOMBIE_SHOOTER_MENU_CARD
                 self.image = pygame.transform.scale(self.image, (CARD_WIDTH, CARD_HEIGHT))
+                # Fills the colour if the images failed to load
+                if IMAGE_LOADING_FAILED:
+                    self.image.fill(self.colour)
             self.background_changed = False
 
         # Lets the user select the gamemode
@@ -387,7 +440,8 @@ class Player(pygame.sprite.Sprite):
         self.shoot_cooldown = BULLET_COOLDOWN
 
         # Materials
-        self.wall_materials = 5
+        self.wall_materials = 6
+        self.build_cooldown = 10
 
         # Player's health
         self.health = 500
@@ -464,9 +518,8 @@ class Player(pygame.sprite.Sprite):
             lt = 0
 
         # Player 1 building and walls snapping to grid
-        if mouse[2]and self.is_player1 and self.wall_materials > 0:
+        if mouse[2]and self.is_player1 and self.wall_materials >= 2:
             self.wall_materials -= 1
-
             center_x = (self.game.pointer1.rect.centerx// GRID_SIZE)
             center_y = (self.game.pointer1.rect.centery// GRID_SIZE)
 
@@ -478,8 +531,8 @@ class Player(pygame.sprite.Sprite):
             self.game.all_walls.add(wall)
 
         # Player2 building and walls snapping to grid
-        elif lt >= 0.3 and not self.is_player1 and self.wall_materials > 0:
-            self.wall_materials -= 1
+        elif lt >= 0.3 and not self.is_player1 and self.wall_materials >= 2:
+            self.wall_materials -= 2
 
             center_x = (self.game.pointer2.rect.centerx // GRID_SIZE)
             center_y = (self.game.pointer2.rect.centery // GRID_SIZE)
@@ -491,6 +544,7 @@ class Player(pygame.sprite.Sprite):
             self.game.all_sprites.add(wall)
             self.game.all_walls.add(wall)
 
+        self.build_cooldown -= 1
 
     # Player collisions
     def collision(self):
@@ -579,8 +633,11 @@ class Wall(pygame.sprite.Sprite):
     def __init__(self, starting_x, starting_y, is_player1, game):
         super(Wall, self).__init__()
 
-        self.image = pygame.image.load('wall.png')
+        self.image = WALL_IMAGE
         self.image = pygame.transform.scale(self.image, (WALL_WIDTH, WALL_HEIGHT))
+        # Fills the colour if the images failed to load
+        if IMAGE_LOADING_FAILED:
+            self.image.fill((89, 51, 0))
         self.rect = self.image.get_rect()
         self.rect.center = starting_x, starting_y
 
@@ -590,9 +647,12 @@ class Wall(pygame.sprite.Sprite):
         self.game = game
         self.is_player1 = is_player1
 
+        self.remove_cooldown = 100
+
 # Walls update class
     def update(self):
         self.collisions()
+        self.remove_cooldown -= 1
 
 # Checks for collisions
     def collisions(self):
@@ -611,9 +671,6 @@ class Wall(pygame.sprite.Sprite):
 
             # destroys wall if health is gone
             if self.health <= 0:
-                self.game.all_sprites.remove(self)
-                self.game.all_walls.remove(self)
-
                 # Lets the zombie(s) move again
                 for zombie_need_moving in zombie_collisions:
                     zombie_need_moving.at_target = False
@@ -630,11 +687,9 @@ class Wall(pygame.sprite.Sprite):
         for wall in wall_collisions:
             if wall != self:
                 if wall.is_player1:
-                    self.game.player1.wall_materials += 1
-                elif not wall.is_player1:
-                    self.game.player2.wall_materials += 1
-                    # print(self.game.player2.wall_materials)
-
+                    self.game.player1.wall_materials += 2
+                else:
+                    self.game.player2.wall_materials += 2
                 self.game.all_sprites.remove(wall)
                 self.game.all_walls.remove(wall)
 
@@ -652,6 +707,3 @@ class WallMaterial(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = x, y
         self.game = game
-
-
-

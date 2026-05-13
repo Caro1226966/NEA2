@@ -59,8 +59,8 @@ DEFAULT_ZOMBIE_COOLDOWN = 30
 
 # Pointer Parameters
 POINTER_SENSITIVITY = SCREEN_WIDTH / 200
-POINTER_WIDTH = SCREEN_WIDTH / 30
-POINTER_HEIGHT = SCREEN_HEIGHT / 20
+POINTER_WIDTH = SCREEN_WIDTH / 60
+POINTER_HEIGHT = SCREEN_HEIGHT / 40
 
 # Wall Parameters
 WALL_WIDTH = SCREEN_WIDTH/30
@@ -70,3 +70,30 @@ WALL_HEIGHT = SCREEN_HEIGHT/16.8
 WALL_ITEM_WIDTH = SCREEN_WIDTH/60
 WALL_ITEM_HEIGHT = SCREEN_HEIGHT/32
 WALL_MATERIAL_SPAWN_PROB = 700
+
+# A constant to let the program know that the images have failed to load
+IMAGE_LOADING_FAILED = False
+
+# All Sprite Images (loaded here to prevent having to constantly load at runtime)
+try:
+    WALL_IMAGE = pygame.image.load('wall.png')
+    MONOLITH_IMAGE = pygame.image.load('monolith.png')
+
+    PLAYER_1_POINTER_IMAGE = pygame.image.load('player1_selector.png')
+    PLAYER_2_POINTER_IMAGE = pygame.image.load('player2_selector.png')
+
+    GRASSY_BACKGROUND = pygame.image.load('background.png')
+    ZOMBIE_SHOOTER_BACKGROUND = pygame.image.load('zombie_menu_background.png')
+    ZOMBIE_SHOOTER_MENU_CARD = pygame.image.load('zombie_shooter_menu_card.png')
+except:
+    print('One or more of the image files are missing or in the wrong location. Placeholders have been loaded ')
+    IMAGE_LOADING_FAILED = True
+
+    WALL_IMAGE = pygame.surface.Surface((WALL_WIDTH, WALL_HEIGHT))
+    MONOLITH_IMAGE = pygame.surface.Surface((MONOLITH_WIDTH, MONOLITH_HEIGHT))
+    PLAYER_1_POINTER_IMAGE =pygame.surface.Surface((POINTER_WIDTH, POINTER_HEIGHT))
+    PLAYER_2_POINTER_IMAGE =pygame.surface.Surface((POINTER_WIDTH, POINTER_HEIGHT))
+    GRASSY_BACKGROUND = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    ZOMBIE_SHOOTER_BACKGROUND =pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    ZOMBIE_SHOOTER_MENU_CARD =pygame.surface.Surface((CARD_WIDTH, CARD_HEIGHT))
+
