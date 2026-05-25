@@ -42,6 +42,7 @@ class Game:
         self.all_bullets = pygame.sprite.Group()
         self.all_walls = pygame.sprite.Group()
         self.all_materials = pygame.sprite.Group()
+        self.all_breakers = pygame.sprite.Sprite()
 
         # Defaults to the game not having ended yet
         self.end = False
@@ -245,6 +246,7 @@ class Game:
         self.all_bullets = pygame.sprite.Group()
         self.all_walls = pygame.sprite.Group()
         self.all_materials = pygame.sprite.Group()
+        self.all_breakers = pygame.sprite.Group()
 
     # Reset the game back to the menu when the game ends
     def end_game_reset(self):
