@@ -77,10 +77,10 @@ class Monolith(pygame.sprite.Sprite):
         # Makes a zombie spawn cooldown that eventually gets faster
         if self.zombie_cooldown <= 0:
             self.zombie_cooldown = DEFAULT_ZOMBIE_COOLDOWN * (10/(self.wave_difficulty/3))
+            # print(self.zombie_cooldown)
 
-            # Calculate amount of reinforcements being spawned
-            zombie_amount = round((ZOMBIE_SPAWN_PROBABILITY * self.seconds_lifespan), 0) + 1
-            zombie_amount = int(zombie_amount)
+            # Calculate Static zombie spawning value
+            zombie_amount = 1
 
             if zombie_amount > 0: # Makes sure it doesn't error out when no zombies are selected
                 zombie_amount = random.randint(1,zombie_amount)
@@ -126,6 +126,7 @@ class Zombie(pygame.sprite.Sprite):
         # Sprite parameters
         self.image = pygame.surface.Surface((ZOMBIE_WIDTH, ZOMBIE_HEIGHT))
         self.rect = self.image.get_rect()
+        self.image.fill((0, 0, 0))
         self.rect.center = (x, y)
 
         # To access the game
@@ -158,7 +159,11 @@ class Zombie(pygame.sprite.Sprite):
     def spawn_reinforcements(self):
         if not self.reinforcement:
             # Calculate amount of reinforcements being spawned
-            reinforcement_amount = round((random.uniform(0,0.06) * self.game.monolith.seconds_lifespan), 0)
+            reinforcement_amount = ((random.uniform(0,0.06) / (10/(self.game.monolith.wave_difficulty/3)))* 100)/2
+            # print('Reinforcement: ',reinforcement_amount)
+            # print('Wave: ',self.game.monolith.wave)
+            reinforcement_amount = round(reinforcement_amount,0)
+            # print('Rounded amount: ', reinforcement_amount)
             reinforcement_amount = int(reinforcement_amount)
 
             # Caps the amount of reinforcements that are able to spawn at 10
@@ -644,7 +649,7 @@ class Wall(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (WALL_WIDTH, WALL_HEIGHT))
         # Fills the colour if the images failed to load
         if IMAGE_LOADING_FAILED:
-            self.image.fill((89, 51, 0))
+            self.image.fill((148, 99, 0))
         self.rect = self.image.get_rect()
         self.rect.center = starting_x, starting_y
         self.breaker = breaker
@@ -661,10 +666,6 @@ class Wall(pygame.sprite.Sprite):
         self.collisions()
 
         self.game.all_breakers = pygame.sprite.Group()
-
-        if self.breaker:
-            self.game.all_sprites.remove(self)
-
 
 # Checks for collisions
     def collisions(self):
@@ -706,7 +707,7 @@ class Wall(pygame.sprite.Sprite):
                 self.game.all_sprites.remove(wall)
                 self.game.all_walls.remove(wall)
 
-        breaker_collisions = pygame.sprite.spritecollide(self,self.game.all_breakers, True)
+        breaker_collisions = pygame.sprite.spritecollide(self,self.game.all_breakers, False)
         for breaker in breaker_collisions:
             if not self.breaker:
                 if breaker.is_player1:
