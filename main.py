@@ -76,6 +76,7 @@ class Game:
     # Runs updates for all sprite logic and resets on game end
     def update(self):
         self.all_sprites.update()
+        self.all_breakers.update()
         self.do_game_drops()
         self.check_for_joystick()
 

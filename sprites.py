@@ -65,6 +65,7 @@ class Monolith(pygame.sprite.Sprite):
                 self.health = 0
                 self.game.end = True
 
+        # Makes sure no walls are placed on the monolith
         wall_collisions = pygame.sprite.spritecollide(self,self.game.all_walls,True)
         for wall in wall_collisions:
             if wall.is_player1:
@@ -149,6 +150,7 @@ class Zombie(pygame.sprite.Sprite):
         # Spawns reinforcements
         self.spawn_reinforcements()
 
+    # Update method
     def update(self):
         if not self.at_target:
             self.move()
@@ -246,6 +248,7 @@ class Pointer(pygame.sprite.Sprite):
 
         self.game = game # Lets the object access the main game class
 
+    # Update method
     def update(self):
         self.move()
         self.clipping()
@@ -386,6 +389,7 @@ class MenuCard(pygame.sprite.Sprite):
         else:
             self.scroll_cooldown -= 1
 
+    # Runs logic when the player clicks the screen
     def on_click(self):
         if self.mode == 'zombie_shooter':
             self.game.sprite_reset()
@@ -429,6 +433,7 @@ class Player(pygame.sprite.Sprite):
         # Player's health
         self.health = 500
 
+
     # Update class
     def update(self):
         self.movement()
@@ -436,6 +441,7 @@ class Player(pygame.sprite.Sprite):
         self.shooting()
         self.building()
         self.collision()
+
 
     # Player Movement
     def movement(self):
@@ -459,6 +465,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.y += PLAYER_SPEED
         if (self.is_player1 and key[pygame.K_d]) or (not self.is_player1 and ls_x > 0.3):
             self.rect.x += PLAYER_SPEED
+
 
     # Handles the player's shooting
     def shooting(self):
@@ -491,6 +498,7 @@ class Player(pygame.sprite.Sprite):
             # reduces the cooldown
         else:
             self.shoot_cooldown -= 1
+
 
 # Lets the player build on right trigger or left click
     def building(self):
@@ -543,8 +551,9 @@ class Player(pygame.sprite.Sprite):
             center_x = (center_x * GRID_SIZE) + WALL_WIDTH / 2
             center_y = (center_y * GRID_SIZE) + WALL_HEIGHT / 2
 
-            wall = Wall(center_x, center_y, True, True, self.game)
-            self.game.all_breakers.add(wall)
+            breaker = Breaker(center_x, center_y, True, self.game)
+            self.game.all_breakers.add(breaker)
+            self.game.all_sprites.add(breaker)
 
         # Player 2 breaking walls
         elif a_pressed and not self.is_player1:
@@ -554,8 +563,9 @@ class Player(pygame.sprite.Sprite):
             center_x = (center_x * GRID_SIZE) + WALL_WIDTH / 2
             center_y = (center_y * GRID_SIZE) + WALL_HEIGHT / 2
 
-            wall = Wall(center_x, center_y, False, True, self.game)
-            self.game.all_breakers.add(wall)
+            breaker = Breaker(center_x, center_y, False, self.game)
+            self.game.all_breakers.add(breaker)
+            # self.game.all_sprites.add(breaker)
 
 
     # Player collisions
@@ -608,7 +618,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, starting_x, starting_y, player1, game):
         super(Bullet, self).__init__()
 
-        # Sprite perameters
+        # Sprite parameters
         self.image = pygame.surface.Surface((BULLET_WIDTH, BULLET_HEIGHT))
         self.image.fill((64, 64, 64))
         self.rect = self.image.get_rect()
@@ -622,21 +632,23 @@ class Bullet(pygame.sprite.Sprite):
         else:
             self.ending_x,self.ending_y = self.game.pointer2.rect.center
 
-
         # Calculates the angle (in radians) for the bullet to travel along
         x_difference = self.ending_x - starting_x
         y_difference = self.ending_y - starting_y
         angle = math.atan2(y_difference, x_difference)
 
         # Calculate the change in x and change in y that we need to do every step
+        # uses trig to find the amount that it needs to move
         self.move_x = math.cos(angle) * BULLET_VELOCITY
         self.move_y = math.sin(angle) * BULLET_VELOCITY
 
         self.lifespan = BULLET_LIFESPAN
 
+    # Update method
     def update(self):
         self.move()
 
+    # Makes the bullet move in the right direction
     def move(self):
         self.rect.x += self.move_x
         self.rect.y += self.move_y
@@ -647,6 +659,7 @@ class Wall(pygame.sprite.Sprite):
 
         self.image = WALL_IMAGE
         self.image = pygame.transform.scale(self.image, (WALL_WIDTH, WALL_HEIGHT))
+
         # Fills the colour if the images failed to load
         if IMAGE_LOADING_FAILED:
             self.image.fill((148, 99, 0))
@@ -661,15 +674,12 @@ class Wall(pygame.sprite.Sprite):
         self.is_player1 = is_player1
 
 
-# Walls update class
+# Walls update method
     def update(self):
         self.collisions()
 
-        self.game.all_breakers = pygame.sprite.Group()
-
 # Checks for collisions
     def collisions(self):
-
         # Collisions with zombies
         zombie_collisions = pygame.sprite.spritecollide(self,self.game.all_zombies, False)
         for zombie in zombie_collisions:
@@ -688,7 +698,7 @@ class Wall(pygame.sprite.Sprite):
                 for zombie_need_moving in zombie_collisions:
                     zombie_need_moving.at_target = False
 
-        # Collisions with bullets
+        # Collisions with bullets so (in 1V1 mode) the wall gets destroyed
         bullet_collisions = pygame.sprite.spritecollide(self,self.game.all_bullets, False)
         for bullet in bullet_collisions:
             if self.game.menu_card.mode == '1V1':
@@ -697,6 +707,7 @@ class Wall(pygame.sprite.Sprite):
                     self.game.all_sprites.remove(bullet)
                     self.game.all_bullets.remove(bullet)
 
+        # Checks for collisions with all other walls so they don't overlap
         wall_collisions = pygame.sprite.spritecollide(self,self.game.all_walls, False)
         for wall in wall_collisions:
             if wall != self:
@@ -707,22 +718,12 @@ class Wall(pygame.sprite.Sprite):
                 self.game.all_sprites.remove(wall)
                 self.game.all_walls.remove(wall)
 
-        breaker_collisions = pygame.sprite.spritecollide(self,self.game.all_breakers, False)
-        for breaker in breaker_collisions:
-            if not self.breaker:
-                if breaker.is_player1:
-                    self.game.player1.wall_materials += 1
-                else:
-                    self.game.player2.wall_materials += 1
-                self.game.all_sprites.remove(self)
-                self.game.all_walls.remove(self)
-
         # destroys wall if health is gone
         if self.health <= 0:
             self.game.all_sprites.remove(self)
             self.game.all_walls.remove(self)
 
-
+# An object so the player can get some materials
 class WallMaterial(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
         super(WallMaterial, self).__init__()
@@ -732,3 +733,49 @@ class WallMaterial(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = x, y
         self.game = game
+
+# The object that the walls collide with to break
+class Breaker(pygame.sprite.Sprite):
+    def __init__(self, x, y, is_player1, game):
+        super(Breaker, self).__init__()
+
+        # Sprite setup
+        self.image = pygame.surface.Surface((WALL_WIDTH, WALL_HEIGHT))
+        self.image.fill((64, 64, 64))
+        self.image.set_alpha(0) # Makes the sprite invis
+        self.rect = self.image.get_rect()
+        self.rect.center = x, y
+        self.is_player1 = is_player1
+        self.game = game
+
+    # does collisions and removes sprite
+    def update(self):
+        self.collisions()
+        print('I AM A BREAKER !!!!!')
+        self.game.all_sprites.remove(self)
+        self.game.all_breakers.remove(self)
+
+# All the collision detection to break the walls
+    def collisions(self):
+        wall_collisions = pygame.sprite.spritecollide(self, self.game.all_walls, False)
+        for wall in wall_collisions:
+            if self.game.menu_card.mode != '1V1':
+                self.game.all_sprites.remove(wall)
+                self.game.all_walls.remove(wall)
+
+                if self.is_player1:
+                    self.game.player1.wall_materials += 1
+                else:
+                    self.game.player2.wall_materials += 1
+
+
+            else:
+                if wall.is_player1 == self.is_player1:
+                    self.game.all_sprites.remove(wall)
+                    self.game.all_walls.remove(wall)
+
+                    if self.is_player1:
+                        self.game.player1.wall_materials += 1
+                    else:
+                        self.game.player2.wall_materials += 1
+
