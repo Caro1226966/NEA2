@@ -2,6 +2,7 @@ import pygame.sprite
 
 from config import *
 
+
 # Monolith's class sprite
 class Monolith(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
@@ -17,7 +18,7 @@ class Monolith(pygame.sprite.Sprite):
         if IMAGE_LOADING_FAILED:
             self.image.fill((156, 156, 156))
 
-        self.game = game # Lets it access the game class
+        self.game = game  # Lets it access the game class
 
         # This is the monolith's health
         self.health = 1000
@@ -54,7 +55,7 @@ class Monolith(pygame.sprite.Sprite):
             zombie.at_target = True
 
             # Checks that the zombie can attack
-            if zombie.attack_cooldown <=0:
+            if zombie.attack_cooldown <= 0:
                 zombie.attack_cooldown = 60
                 self.health -= zombie.damage
             else:
@@ -66,7 +67,7 @@ class Monolith(pygame.sprite.Sprite):
                 self.game.end = True
 
         # Makes sure no walls are placed on the monolith
-        wall_collisions = pygame.sprite.spritecollide(self,self.game.all_walls,True)
+        wall_collisions = pygame.sprite.spritecollide(self, self.game.all_walls, True)
         for wall in wall_collisions:
             if wall.is_player1:
                 self.game.player1.wall_materials += 2
@@ -77,14 +78,14 @@ class Monolith(pygame.sprite.Sprite):
     def spawn_zombies(self):
         # Makes a zombie spawn cooldown that eventually gets faster
         if self.zombie_cooldown <= 0:
-            self.zombie_cooldown = DEFAULT_ZOMBIE_COOLDOWN * (10/(self.wave_difficulty/3))
+            self.zombie_cooldown = DEFAULT_ZOMBIE_COOLDOWN * (10 / (self.wave_difficulty / 3))
             # print(self.zombie_cooldown)
 
             # Calculate Static zombie spawning value
             zombie_amount = 1
 
-            if zombie_amount > 0: # Makes sure it doesn't error out when no zombies are selected
-                zombie_amount = random.randint(1,zombie_amount)
+            if zombie_amount > 0:  # Makes sure it doesn't error out when no zombies are selected
+                zombie_amount = random.randint(1, zombie_amount)
                 # Calculate parameters and spawn the zombies
                 for i in range(0, zombie_amount):
                     # Calculate the location of the reinforcements being spawned
@@ -100,15 +101,15 @@ class Monolith(pygame.sprite.Sprite):
                     self.game.all_sprites.add(zombie)
                     self.game.all_zombies.add(zombie)
         else:
-            self.zombie_cooldown -= 0.1 # takes 0.1 from the cooldown if it doesn't spawn a zombie
+            self.zombie_cooldown -= 0.1  # takes 0.1 from the cooldown if it doesn't spawn a zombie
             #print(self.zombie_cooldown)
 
     # Controls the zombie spawning and makes it spawn in waves
     def waves_controller(self):
         # Checks if the wave is on cooldown (no zombies spawn)
         if self.seconds_lifespan >= self.wave_duration and self.wave_cooldown > 0:
-            self.wave_cooldown -= 1/60
-            self.zombie_cooldown = 1 # Makes the zombies not spawn by never letting the timer run out
+            self.wave_cooldown -= 1 / 60
+            self.zombie_cooldown = 1  # Makes the zombies not spawn by never letting the timer run out
 
         # Runs once the wave cooldown is over
         elif self.wave_cooldown <= 0:
@@ -121,7 +122,7 @@ class Monolith(pygame.sprite.Sprite):
 
 # The zombie logic
 class Zombie(pygame.sprite.Sprite):
-    def __init__(self, x, y, health, damage,reinforcement, game):
+    def __init__(self, x, y, health, damage, reinforcement, game):
         super(Zombie, self).__init__()
 
         # Sprite parameters
@@ -135,17 +136,17 @@ class Zombie(pygame.sprite.Sprite):
 
         # extra zombie properties
         self.health = health
-        self.movement_speed = BASE_MOVEMENT_SPEED * (50/self.health)
+        self.movement_speed = BASE_MOVEMENT_SPEED * (50 / self.health)
         if self.movement_speed >= BASE_MOVEMENT_SPEED * 2:
             self.movement_speed = BASE_MOVEMENT_SPEED * 2
         self.damage = damage
         self.reinforcement = reinforcement
         self.attack_cooldown = 60
-        self.at_target  = False
+        self.at_target = False
 
         # Target location's x and y
-        self.target_x = self.game.monolith.rect.x + MONOLITH_WIDTH/2
-        self.target_y = self.game.monolith.rect.y + MONOLITH_HEIGHT/2
+        self.target_x = self.game.monolith.rect.x + MONOLITH_WIDTH / 2
+        self.target_y = self.game.monolith.rect.y + MONOLITH_HEIGHT / 2
 
         # Spawns reinforcements
         self.spawn_reinforcements()
@@ -156,15 +157,15 @@ class Zombie(pygame.sprite.Sprite):
             self.move()
         self.collision()
 
-
-# The logic to spawn zombie reinforcements
+    # The logic to spawn zombie reinforcements
     def spawn_reinforcements(self):
         if not self.reinforcement:
             # Calculate amount of reinforcements being spawned
-            reinforcement_amount = ((random.uniform(0,0.06) / (10/(self.game.monolith.wave_difficulty/3)))* 100)/2
+            reinforcement_amount = ((random.uniform(0, 0.06) / (
+                        10 / (self.game.monolith.wave_difficulty / 3))) * 100) / 2
             # print('Reinforcement: ',reinforcement_amount)
             # print('Wave: ',self.game.monolith.wave)
-            reinforcement_amount = round(reinforcement_amount,0)
+            reinforcement_amount = round(reinforcement_amount, 0)
             # print('Rounded amount: ', reinforcement_amount)
             reinforcement_amount = int(reinforcement_amount)
 
@@ -173,14 +174,14 @@ class Zombie(pygame.sprite.Sprite):
                 reinforcement_amount = 10
 
             # Spawns the amount of reinforcements that need spawning
-            for i in range(0,reinforcement_amount):
+            for i in range(0, reinforcement_amount):
                 # Calculate the location of the reinforcements being spawned
-                location_x =random.randint(self.rect.x - 100,self.rect.x + 100)
-                location_y =random.randint(self.rect.y - 100,self.rect.y + 100)
+                location_x = random.randint(self.rect.x - 100, self.rect.x + 100)
+                location_y = random.randint(self.rect.y - 100, self.rect.y + 100)
 
                 # Calculate health
-                health = random.randint(1,200)
-                damage = random.randint(1,50)
+                health = random.randint(1, 200)
+                damage = random.randint(1, 50)
 
                 # Spawns the reinforcement zombie
                 zombie = Zombie(location_x, location_y, health, damage, True, self.game)
@@ -226,11 +227,11 @@ class Pointer(pygame.sprite.Sprite):
         if self.is_player_1:
             self.image = PLAYER_2_POINTER_IMAGE
             if IMAGE_LOADING_FAILED:
-                self.image.fill((255,137,0))         # Fills the colour if the images failed to load
+                self.image.fill((255, 137, 0))  # Fills the colour if the images failed to load
         else:
             self.image = PLAYER_1_POINTER_IMAGE
             if IMAGE_LOADING_FAILED:
-                self.image.fill((0, 145, 255))         # Fills the colour if the images failed to load
+                self.image.fill((0, 145, 255))  # Fills the colour if the images failed to load
 
         self.image = pygame.transform.scale(self.image, (POINTER_WIDTH, POINTER_HEIGHT))
 
@@ -246,7 +247,7 @@ class Pointer(pygame.sprite.Sprite):
             self.trigger = pygame.joystick.Joystick(0)
             self.trigger.init()
 
-        self.game = game # Lets the object access the main game class
+        self.game = game  # Lets the object access the main game class
 
     # Update method
     def update(self):
@@ -255,8 +256,8 @@ class Pointer(pygame.sprite.Sprite):
 
     def move(self):
         # Move player 1's pointer
-        if  self.is_player_1:
-            self.rect.x,self.rect.y = pygame.mouse.get_pos()
+        if self.is_player_1:
+            self.rect.x, self.rect.y = pygame.mouse.get_pos()
             self.rect.x -= POINTER_WIDTH / 2
             self.rect.y -= POINTER_HEIGHT / 2
 
@@ -292,7 +293,7 @@ class Pointer(pygame.sprite.Sprite):
         # Top and bottom screen border
         if self.rect.y < 0:
             self.rect.y = 0
-        elif self.rect.y > SCREEN_HEIGHT -POINTER_HEIGHT:
+        elif self.rect.y > SCREEN_HEIGHT - POINTER_HEIGHT:
             self.rect.y = SCREEN_HEIGHT - POINTER_HEIGHT
 
 
@@ -303,7 +304,7 @@ class MenuCard(pygame.sprite.Sprite):
         # Menu card sprite parameters
         self.image = pygame.surface.Surface((CARD_WIDTH, CARD_HEIGHT))
         self.rect = self.image.get_rect()
-        self.rect.center = (x,y)
+        self.rect.center = (x, y)
         self.colour = colour
         self.image = ZOMBIE_SHOOTER_MENU_CARD
         self.image = pygame.transform.scale(self.image, (CARD_WIDTH, CARD_HEIGHT))
@@ -323,6 +324,15 @@ class MenuCard(pygame.sprite.Sprite):
         # Stops the background constantly being changed and resized every frame when it doesn't need to
         self.background_changed = False
 
+        # Trigger initialisation
+        if pygame.joystick.get_count() < 1:
+            print('please connect a joystick')
+            self.trigger = None
+        else:
+            self.trigger = pygame.joystick.Joystick(0)
+            self.trigger.init()
+
+    # Update method
     def update(self):
         self.change_mode()
         self.update_background()
@@ -336,7 +346,7 @@ class MenuCard(pygame.sprite.Sprite):
 
             # Fills the colour if the images failed to load
             if IMAGE_LOADING_FAILED:
-                self.game.background.fill((112,112,112))
+                self.game.background.fill((112, 112, 112))
 
             self.background_changed = True
 
@@ -348,18 +358,26 @@ class MenuCard(pygame.sprite.Sprite):
 
             # Fills the colour if the images failed to load
             if IMAGE_LOADING_FAILED:
-                self.game.background.fill((112,112,112))
+                self.game.background.fill((112, 112, 112))
 
             self.background_changed = True
 
-
-# Checks for a certain key press and changes/selects the gamemode based on that
+    # Checks for a certain key press and changes/selects the gamemode based on that
     def change_mode(self):
         key = pygame.key.get_pressed()
         mouse = pygame.mouse.get_pressed()
 
+        if self.trigger is not None:
+            lb = self.trigger.get_button(4)
+            rb = self.trigger.get_button(5)
+            a_pressed = self.trigger.get_button(0)
+        else:
+            lb = False
+            rb = False
+            a_pressed = False
+
         # Lets the user scroll through the gamemodes using a, d,  'space', 'left arrow' and 'right arrow'
-        if (key[pygame.K_LEFT] or key[pygame.K_RIGHT] or key[pygame.K_a] or key[pygame.K_d]) and self.scroll_cooldown <= 0:
+        if (key[pygame.K_LEFT] or key[pygame.K_RIGHT] or key[pygame.K_a] or key[pygame.K_d] or lb  or rb ) and self.scroll_cooldown <= 0:
 
             # Resets the cooldown
             self.scroll_cooldown = 15
@@ -382,7 +400,7 @@ class MenuCard(pygame.sprite.Sprite):
             self.background_changed = False
 
         # Lets the user select the gamemode
-        elif mouse[0] or mouse[1]:
+        elif mouse[0] or mouse[1] or a_pressed:
             self.on_click()
 
         # Adds 1 to the scrolling cooldown
@@ -406,7 +424,7 @@ class Player(pygame.sprite.Sprite):
         # player sprite parameters
         self.image = pygame.surface.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
         self.rect = self.image.get_rect()
-        self.rect.center = (x,y)
+        self.rect.center = (x, y)
         self.image.fill(colour)
 
         # To access the game
@@ -433,7 +451,6 @@ class Player(pygame.sprite.Sprite):
         # Player's health
         self.health = 500
 
-
     # Update class
     def update(self):
         self.movement()
@@ -442,10 +459,9 @@ class Player(pygame.sprite.Sprite):
         self.building()
         self.collision()
 
-
     # Player Movement
     def movement(self):
-        key = pygame.key.get_pressed() # Gets the current pressed key
+        key = pygame.key.get_pressed()  # Gets the current pressed key
 
         # Makes sure nothing happens if there is no controller connected
         # Gets the controller input if a controller is connected
@@ -466,7 +482,6 @@ class Player(pygame.sprite.Sprite):
         if (self.is_player1 and key[pygame.K_d]) or (not self.is_player1 and ls_x > 0.3):
             self.rect.x += PLAYER_SPEED
 
-
     # Handles the player's shooting
     def shooting(self):
         mouse = pygame.mouse.get_pressed()
@@ -486,7 +501,7 @@ class Player(pygame.sprite.Sprite):
             self.shoot_cooldown = BULLET_COOLDOWN
 
         # Handles the shooting for player 2
-        elif rt >=0.5 and not self.is_player1 and self.shoot_cooldown <= 0:
+        elif rt >= 0.5 and not self.is_player1 and self.shoot_cooldown <= 0:
             # Creates player 2's bullet and adds it to all sprites
             bullet = Bullet(self.rect.centerx, self.rect.centery, False, self.game)
             self.game.all_sprites.add(bullet)
@@ -499,27 +514,26 @@ class Player(pygame.sprite.Sprite):
         else:
             self.shoot_cooldown -= 1
 
-
-# Lets the player build on right trigger or left click
+    # Lets the player build on right trigger or left click
     def building(self):
         mouse = pygame.mouse.get_pressed()
         if self.trigger is not None:
             lt = self.trigger.get_axis(4)
-            a_pressed = self.trigger.get_button(0) # Gets the A button pressed state
+            a_pressed = self.trigger.get_button(0)  # Gets the A button pressed state
         else:
             lt = 0
             a_pressed = False
 
         # Player 1 building and walls snapping to grid
-        if mouse[2]and self.is_player1 and self.wall_materials >= 2:
+        if mouse[2] and self.is_player1 and self.wall_materials >= 2:
             self.wall_materials -= 2
-            center_x = (self.game.pointer1.rect.centerx// GRID_SIZE)
-            center_y = (self.game.pointer1.rect.centery// GRID_SIZE)
+            center_x = (self.game.pointer1.rect.centerx // GRID_SIZE)
+            center_y = (self.game.pointer1.rect.centery // GRID_SIZE)
 
-            center_x = (center_x * GRID_SIZE) + WALL_WIDTH/2
-            center_y =  (center_y * GRID_SIZE) + WALL_HEIGHT/2
+            center_x = (center_x * GRID_SIZE) + WALL_WIDTH / 2
+            center_y = (center_y * GRID_SIZE) + WALL_HEIGHT / 2
 
-            wall = Wall(center_x, center_y, True,False, self.game)
+            wall = Wall(center_x, center_y, True, False, self.game)
             self.game.all_sprites.add(wall)
             self.game.all_walls.add(wall)
 
@@ -532,10 +546,10 @@ class Player(pygame.sprite.Sprite):
             center_x = (self.game.pointer2.rect.centerx // GRID_SIZE)
             center_y = (self.game.pointer2.rect.centery // GRID_SIZE)
 
-            center_x = (center_x * GRID_SIZE) + WALL_WIDTH/2
-            center_y =  (center_y * GRID_SIZE) + WALL_HEIGHT/2
+            center_x = (center_x * GRID_SIZE) + WALL_WIDTH / 2
+            center_y = (center_y * GRID_SIZE) + WALL_HEIGHT / 2
 
-            wall = Wall(center_x, center_y, False,False, self.game)
+            wall = Wall(center_x, center_y, False, False, self.game)
             self.game.all_sprites.add(wall)
             self.game.all_walls.add(wall)
 
@@ -567,17 +581,16 @@ class Player(pygame.sprite.Sprite):
             self.game.all_breakers.add(breaker)
             # self.game.all_sprites.add(breaker)
 
-
     # Player collisions
     def collision(self):
         # Checks if the player has collided with the wall material
         collided_wall_materials = pygame.sprite.spritecollide(self, self.game.all_materials, True)
         for wall_material in collided_wall_materials:
             # Gives the player a random amount of materials from 1-3
-            self.wall_materials += random.randint(1,3)
+            self.wall_materials += random.randint(1, 3)
 
         # Checks if the player has collided with a bullet
-        collided_bullets = pygame.sprite.spritecollide(self,self.game.all_bullets, False)
+        collided_bullets = pygame.sprite.spritecollide(self, self.game.all_bullets, False)
         for bullet in collided_bullets:
             # Makes sure it is the right gamemode and the player is
             if self.game.menu_card.mode == '1V1':
@@ -588,7 +601,7 @@ class Player(pygame.sprite.Sprite):
                     self.game.all_bullets.remove(bullet)
 
         # Determines the winner
-        if self.health <=0:
+        if self.health <= 0:
             self.health = 0
             self.game.end = True
             if self.is_player1:
@@ -596,8 +609,7 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.game.winner = 'Player1'
 
-
-# This handles the screen clipping and borders for the player
+    # This handles the screen clipping and borders for the player
     def clipping(self):
 
         # Right and left screen border
@@ -628,9 +640,9 @@ class Bullet(pygame.sprite.Sprite):
 
         # makes sure it is going to the right pointer
         if self.is_player1:
-            self.ending_x,self.ending_y = self.game.pointer1.rect.center
+            self.ending_x, self.ending_y = self.game.pointer1.rect.center
         else:
-            self.ending_x,self.ending_y = self.game.pointer2.rect.center
+            self.ending_x, self.ending_y = self.game.pointer2.rect.center
 
         # Calculates the angle (in radians) for the bullet to travel along
         x_difference = self.ending_x - starting_x
@@ -653,8 +665,9 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.x += self.move_x
         self.rect.y += self.move_y
 
+
 class Wall(pygame.sprite.Sprite):
-    def __init__(self, starting_x, starting_y, is_player1,breaker, game):
+    def __init__(self, starting_x, starting_y, is_player1, breaker, game):
         super(Wall, self).__init__()
 
         self.image = WALL_IMAGE
@@ -673,20 +686,19 @@ class Wall(pygame.sprite.Sprite):
         self.game = game
         self.is_player1 = is_player1
 
-
-# Walls update method
+    # Walls update method
     def update(self):
         self.collisions()
 
-# Checks for collisions
+    # Checks for collisions
     def collisions(self):
         # Collisions with zombies
-        zombie_collisions = pygame.sprite.spritecollide(self,self.game.all_zombies, False)
+        zombie_collisions = pygame.sprite.spritecollide(self, self.game.all_zombies, False)
         for zombie in zombie_collisions:
             zombie.at_target = True
 
             # Checks that the zombie can attack
-            if zombie.attack_cooldown <=0:
+            if zombie.attack_cooldown <= 0:
                 zombie.attack_cooldown = 60
                 self.health -= 1
             else:
@@ -699,7 +711,7 @@ class Wall(pygame.sprite.Sprite):
                     zombie_need_moving.at_target = False
 
         # Collisions with bullets so (in 1V1 mode) the wall gets destroyed
-        bullet_collisions = pygame.sprite.spritecollide(self,self.game.all_bullets, False)
+        bullet_collisions = pygame.sprite.spritecollide(self, self.game.all_bullets, False)
         for bullet in bullet_collisions:
             if self.game.menu_card.mode == '1V1':
                 if bullet.is_player1 is not self.is_player1:
@@ -708,7 +720,7 @@ class Wall(pygame.sprite.Sprite):
                     self.game.all_bullets.remove(bullet)
 
         # Checks for collisions with all other walls so they don't overlap
-        wall_collisions = pygame.sprite.spritecollide(self,self.game.all_walls, False)
+        wall_collisions = pygame.sprite.spritecollide(self, self.game.all_walls, False)
         for wall in wall_collisions:
             if wall != self:
                 if wall.is_player1:
@@ -723,6 +735,7 @@ class Wall(pygame.sprite.Sprite):
             self.game.all_sprites.remove(self)
             self.game.all_walls.remove(self)
 
+
 # An object so the player can get some materials
 class WallMaterial(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
@@ -734,6 +747,7 @@ class WallMaterial(pygame.sprite.Sprite):
         self.rect.center = x, y
         self.game = game
 
+
 # The object that the walls collide with to break
 class Breaker(pygame.sprite.Sprite):
     def __init__(self, x, y, is_player1, game):
@@ -742,7 +756,7 @@ class Breaker(pygame.sprite.Sprite):
         # Sprite setup
         self.image = pygame.surface.Surface((WALL_WIDTH, WALL_HEIGHT))
         self.image.fill((64, 64, 64))
-        self.image.set_alpha(0) # Makes the sprite invis
+        self.image.set_alpha(0)  # Makes the sprite invis
         self.rect = self.image.get_rect()
         self.rect.center = x, y
         self.is_player1 = is_player1
@@ -751,11 +765,11 @@ class Breaker(pygame.sprite.Sprite):
     # does collisions and removes sprite
     def update(self):
         self.collisions()
-        print('I AM A BREAKER !!!!!')
+        # print('I AM A BREAKER !!!!!')
         self.game.all_sprites.remove(self)
         self.game.all_breakers.remove(self)
 
-# All the collision detection to break the walls
+    # All the collision detection to break the walls
     def collisions(self):
         wall_collisions = pygame.sprite.spritecollide(self, self.game.all_walls, False)
         for wall in wall_collisions:
@@ -778,4 +792,3 @@ class Breaker(pygame.sprite.Sprite):
                         self.game.player1.wall_materials += 1
                     else:
                         self.game.player2.wall_materials += 1
-

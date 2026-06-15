@@ -85,7 +85,7 @@ try:
     GRASSY_BACKGROUND = pygame.image.load('background.png')
     ZOMBIE_SHOOTER_BACKGROUND = pygame.image.load('zombie_menu_background.png')
     ZOMBIE_SHOOTER_MENU_CARD = pygame.image.load('zombie_shooter_menu_card.png')
-except:
+except FileNotFoundError:
     print('One or more of the image files are missing or in the wrong location. Placeholders have been loaded ')
     IMAGE_LOADING_FAILED = True
 
