@@ -42,7 +42,8 @@ class Game:
         self.all_bullets = pygame.sprite.Group()
         self.all_walls = pygame.sprite.Group()
         self.all_materials = pygame.sprite.Group()
-        self.all_breakers = pygame.sprite.Sprite()
+        self.all_breakers = pygame.sprite.Group()
+        self.all_monoliths = pygame.sprite.Group()
 
         # Defaults to the game not having ended yet
         self.end = False
@@ -204,6 +205,7 @@ class Game:
         # Adds all the objects to the sprite groups
         self.all_sprites.add(self.player1, self.pointer1, self.monolith)
         self.all_players.add(self.player1)
+        self.all_monoliths.add(self.monolith)
 
         pygame.mouse.set_visible(False) # Makes you unable to see the mouse so the custom cursors look better
 

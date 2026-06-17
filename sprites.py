@@ -1,5 +1,4 @@
 import pygame.sprite
-
 from config import *
 
 
@@ -144,9 +143,16 @@ class Zombie(pygame.sprite.Sprite):
         self.attack_cooldown = 60
         self.at_target = False
 
+        # Makes sure that the zombies don't spawn ON the monolith
+        collided_monoliths = pygame.sprite.spritecollide(self,self.game.all_monoliths, False)
+        if collided_monoliths:
+            self.rect.center = (random.randint(0,SCREEN_WIDTH), random.randint(0,SCREEN_HEIGHT))
+            print('OI zombie stop cheating :( *hrmf*')
+
         # Target location's x and y
         self.target_x = self.game.monolith.rect.x + MONOLITH_WIDTH / 2
         self.target_y = self.game.monolith.rect.y + MONOLITH_HEIGHT / 2
+
 
         # Spawns reinforcements
         self.spawn_reinforcements()
@@ -163,10 +169,8 @@ class Zombie(pygame.sprite.Sprite):
             # Calculate amount of reinforcements being spawned
             reinforcement_amount = ((random.uniform(0, 0.06) / (
                         10 / (self.game.monolith.wave_difficulty / 3))) * 100) / 2
-            # print('Reinforcement: ',reinforcement_amount)
-            # print('Wave: ',self.game.monolith.wave)
+
             reinforcement_amount = round(reinforcement_amount, 0)
-            # print('Rounded amount: ', reinforcement_amount)
             reinforcement_amount = int(reinforcement_amount)
 
             # Caps the amount of reinforcements that are able to spawn at 10
@@ -193,17 +197,19 @@ class Zombie(pygame.sprite.Sprite):
         # The method that makes the sprite move to the desire location using vectors
         movement_vector = pygame.math.Vector2(self.target_x - self.rect.x, self.target_y - self.rect.y)
 
-        # In a try incase the normalisation or movement fail (e.g. it is on the target and can't move anywhere else)
-        try:
+        # In an IF incase the normalisation or movement fail (e.g. it is on the target and can't move anywhere else)
+        # This shouldn't happen because it stops before it reaches the centre but just in case
+        if movement_vector != 0:
             # Normalises the vector
             movement_vector.normalize()
+
             # Re-scales the vector
             movement_vector.scale_to_length(self.movement_speed)
+
             # Moves the sprite
             self.rect.move_ip(movement_vector)
             # print('Vector: ', movement_vector)
-        except:
-            pass
+
 
     def collision(self):
         bullet_collisions = pygame.sprite.spritecollide(self, self.game.all_bullets, True)
@@ -241,7 +247,6 @@ class Pointer(pygame.sprite.Sprite):
 
         # Trigger initialisation
         if pygame.joystick.get_count() < 1:
-            print('please connect a joystick')
             self.trigger = None
         else:
             self.trigger = pygame.joystick.Joystick(0)
@@ -435,7 +440,6 @@ class Player(pygame.sprite.Sprite):
 
         # Trigger initialisation
         if pygame.joystick.get_count() < 1:
-            print('please connect a joystick')
             self.trigger = None
         else:
             self.trigger = pygame.joystick.Joystick(0)
@@ -527,9 +531,12 @@ class Player(pygame.sprite.Sprite):
         # Player 1 building and walls snapping to grid
         if mouse[2] and self.is_player1 and self.wall_materials >= 2:
             self.wall_materials -= 2
+
+            # Does the X, y using integer division to snap it to a grid (puts it to the middle of the block not any other place)
             center_x = (self.game.pointer1.rect.centerx // GRID_SIZE)
             center_y = (self.game.pointer1.rect.centery // GRID_SIZE)
 
+            # makes the center
             center_x = (center_x * GRID_SIZE) + WALL_WIDTH / 2
             center_y = (center_y * GRID_SIZE) + WALL_HEIGHT / 2
 
@@ -774,8 +781,8 @@ class Breaker(pygame.sprite.Sprite):
         wall_collisions = pygame.sprite.spritecollide(self, self.game.all_walls, False)
         for wall in wall_collisions:
             if self.game.menu_card.mode != '1V1':
-                self.game.all_sprites.remove(wall)
-                self.game.all_walls.remove(wall)
+                wall.health = 0
+
 
                 if self.is_player1:
                     self.game.player1.wall_materials += 1
@@ -785,8 +792,7 @@ class Breaker(pygame.sprite.Sprite):
 
             else:
                 if wall.is_player1 == self.is_player1:
-                    self.game.all_sprites.remove(wall)
-                    self.game.all_walls.remove(wall)
+                    wall.health = 0
 
                     if self.is_player1:
                         self.game.player1.wall_materials += 1

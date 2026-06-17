@@ -16,9 +16,9 @@ pygame.display.set_caption('Top Down Shooter Game')
 # Fonts
 pygame.font.init()
 font = pygame.font.SysFont('Comic Sans MS', int(round(SCREEN_WIDTH/38.5, 0)))
-print(int(round(SCREEN_WIDTH/38.5, 0))) # Try to get it as close to 50 as possible on my monitor
+# print(int(round(SCREEN_WIDTH/38.5, 0))) # Try to get it as close to 50 as possible on my monitor to use as a baseline / guide
 score_font = pygame.font.SysFont('Comic Sans MS', int(round(SCREEN_WIDTH/9.6, 0)), bold=True)
-print(int(round(SCREEN_WIDTH/9.6, 0))) # Try to get it as close to 200 as possible on my monitor
+# print(int(round(SCREEN_WIDTH/9.6, 0))) # Try to get it as close to 200 as possible on my monitor to use as a baseline / guide
 
 # initialisations
 pygame.joystick.init()
@@ -43,8 +43,8 @@ PLAYER_HEIGHT = SCREEN_HEIGHT / 20
 # Menu card parameters
 CARD_WIDTH = SCREEN_WIDTH / 4
 CARD_HEIGHT = SCREEN_HEIGHT / 1.5
-print('Card Height: ', CARD_HEIGHT)
-print('Card Width:', CARD_WIDTH)
+# print('Card Height: ', CARD_HEIGHT)
+# print('Card Width:', CARD_WIDTH)
 
 # Monolith Parameters
 MONOLITH_WIDTH = SCREEN_WIDTH / 15
@@ -86,7 +86,7 @@ try:
     ZOMBIE_SHOOTER_BACKGROUND = pygame.image.load('zombie_menu_background.png')
     ZOMBIE_SHOOTER_MENU_CARD = pygame.image.load('zombie_shooter_menu_card.png')
 except FileNotFoundError:
-    print('One or more of the image files are missing or in the wrong location. Placeholders have been loaded ')
+    print('One or more of the image files are missing or in the wrong location. Placeholders have been loaded :)')
     IMAGE_LOADING_FAILED = True
 
     WALL_IMAGE = pygame.surface.Surface((WALL_WIDTH, WALL_HEIGHT))
