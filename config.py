@@ -97,3 +97,4 @@ except FileNotFoundError:
     ZOMBIE_SHOOTER_BACKGROUND =pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     ZOMBIE_SHOOTER_MENU_CARD =pygame.surface.Surface((CARD_WIDTH, CARD_HEIGHT))
 
+  # 1221 lines total btw :)

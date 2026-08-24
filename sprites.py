@@ -147,7 +147,7 @@ class Zombie(pygame.sprite.Sprite):
         collided_monoliths = pygame.sprite.spritecollide(self,self.game.all_monoliths, False)
         if collided_monoliths:
             self.rect.center = (random.randint(0,SCREEN_WIDTH), random.randint(0,SCREEN_HEIGHT))
-            print('OI zombie stop cheating :( *hrmf*')
+            # print('OI zombie stop cheating :( *hrmf*')
 
         # Target location's x and y
         self.target_x = self.game.monolith.rect.x + MONOLITH_WIDTH / 2
@@ -748,11 +748,13 @@ class WallMaterial(pygame.sprite.Sprite):
     def __init__(self, x, y, game):
         super(WallMaterial, self).__init__()
 
-        self.image = pygame.surface.Surface((WALL_ITEM_WIDTH, WALL_ITEM_HEIGHT))
-        self.image.fill((71, 40, 1))
+        self.image = pygame.surface.Surface((WALL_ITEM_WIDTH, WALL_ITEM_HEIGHT), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.center = x, y
         self.game = game
+
+        pygame.draw.circle(surface=self.image, radius=WALL_ITEM_HEIGHT/2, color=(71, 40, 1), center= (WALL_ITEM_WIDTH/2, WALL_ITEM_HEIGHT/2))
+        # print('Material spawned')
 
 
 # The object that the walls collide with to break
