@@ -294,8 +294,13 @@ class Game:
 
     # This safely returns whatever is in the file
     def read_from_file(self):
-        file = open('zombie_shooter_score.txt', 'r') # Opens the file as read
-        read = file.read() # Reads the file
+        read = None
+        while read is None:
+            try:
+                file = open('zombie_shooter_score.txt', 'r') # Opens the file as read
+                read = file.read() # Reads the file
+            except FileNotFoundError:
+                self.write_to_file('0')
 
         # Makes sure it is not returning a corrupt or incorrect value
         if not read.isdigit():

@@ -399,6 +399,7 @@ class MenuCard(pygame.sprite.Sprite):
                 self.colour = 'green'
                 self.image = ZOMBIE_SHOOTER_MENU_CARD
                 self.image = pygame.transform.scale(self.image, (CARD_WIDTH, CARD_HEIGHT))
+
                 # Fills the colour if the images failed to load
                 if IMAGE_LOADING_FAILED:
                     self.image.fill(self.colour)
